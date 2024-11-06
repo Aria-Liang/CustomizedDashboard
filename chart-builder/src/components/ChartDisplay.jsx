@@ -3,6 +3,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 
 // Helper function to parse quarter strings into Date objects
 const parseQuarterToDate = (quarterString) => {
@@ -14,10 +17,12 @@ const parseQuarterToDate = (quarterString) => {
   return null;
 };
 
-const ChartDisplay = ({ chartType, data, groupBy }) => {
+const ChartDisplay = ({ chartType, data, groupBy, onAddChart, initialChartTitle, showAddButton = true }) => {
   const chartRef = useRef();
   const [chartTitle, setChartTitle] = useState('Cloud Provider Line Chart');
   const [isEditing, setIsEditing] = useState(false);
+  const [iconClicked, setIconClicked] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
 
   const handleIconClick = () => {
     setIsEditing(true);
@@ -25,6 +30,25 @@ const ChartDisplay = ({ chartType, data, groupBy }) => {
 
   const handleBlur = () => {
     setIsEditing(false);
+  };
+
+  const handleAddChart = () => {
+    if (onAddChart) {
+      onAddChart({
+        chartType,
+        data,
+        groupBy,
+        chartTitle,
+      });
+      // 图标变色
+      setIconClicked(true);
+      // 显示提示信息
+      setAlertOpen(true);
+      // 一段时间后恢复图标颜色
+      setTimeout(() => {
+        setIconClicked(false);
+      }, 500); // 500 毫秒后恢复
+    }
   };
 
   useEffect(() => {
@@ -639,7 +663,7 @@ const ChartDisplay = ({ chartType, data, groupBy }) => {
           value={chartTitle}
           onChange={(e) => setChartTitle(e.target.value)}
           style={{
-            width: '100%',
+            width: '80%',
             fontSize: '20px',
             fontWeight: 'bold',
             padding: '20px',
@@ -659,11 +683,33 @@ const ChartDisplay = ({ chartType, data, groupBy }) => {
           style={{ color: '#720e9e', cursor: 'pointer' }}
           onClick={handleIconClick}
         />
+        {showAddButton && <AddIcon
+        style={{
+            color: iconClicked ? 'green' : '#720e9e',
+            cursor: 'pointer',
+            marginLeft: '8px',
+        }}
+        onClick={handleAddChart}
+        />}
       </div>
       <div
         ref={chartRef}
         style={{ width: '100%', height: '100%' }} // Ensures the chart fills the container
       />
+      <Snackbar
+        open={alertOpen}
+        autoHideDuration={3000}
+        onClose={() => setAlertOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <MuiAlert
+          onClose={() => setAlertOpen(false)}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          Added it to your dashboard!
+        </MuiAlert>
+      </Snackbar>
     </div>
   );
   

@@ -8,7 +8,7 @@ import DataTable from '../components/DataTable';
 import { aggregateDataByCloudProvider } from '../chartLogic/cloudProviderAggregation';
 import mockData from '../data/mockData.json';
 
-function ChartBuilder() {
+function ChartBuilder({ onAddChart }) {
   // State variables
   const [chartType, setChartType] = useState('line');
   const [xAxis, setXAxis] = useState('time');
@@ -19,6 +19,8 @@ function ChartBuilder() {
   const [maxDisplay, setMaxDisplay] = useState('all');
   const [customMaxDisplay, setCustomMaxDisplay] = useState('');
   const [dimension, setDimension] = useState('cloudProvider');
+  const [chartTitle, setChartTitle] = useState('My Initial Chart Title');
+
 
   useEffect(() => {
     console.log('From Date in Parent:', fromDate);
@@ -107,6 +109,9 @@ function ChartBuilder() {
             customMaxDisplay={customMaxDisplay}
             dimension={dimension}
             data={aggregatedData} // Pass aggregated data to the chart
+            onAddChart={onAddChart}
+            initialChartTitle={chartTitle}
+            showAddButton={true}
           />
         </Box>
 
