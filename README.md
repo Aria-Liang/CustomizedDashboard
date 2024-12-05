@@ -34,7 +34,9 @@ This is the frontend codebase for the Customized Dashboard Application, enabling
 ## Project Structure
 1. /src/pages/
 - Dashboard.jsx: Displays all saved charts and allows chart management.
+  ![image](https://github.com/user-attachments/assets/60438f03-a620-46af-9089-34f37465fff8)
 - ChartBuilder.jsx: Enables users to create and preview new charts.
+  ![image](https://github.com/user-attachments/assets/ee0e1b0c-d552-4fac-b33c-3da9a48f4598)
 2. /src/components/
 - ChartBuilderLeftPanel.jsx: Configuration options for chart creation.
 - ChartDisplay.jsx: Renders charts dynamically based on user configurations.
