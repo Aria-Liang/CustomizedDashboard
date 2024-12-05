@@ -1,5 +1,3 @@
-// src/components/DataTable.jsx
-
 import React, { useState, useMemo } from 'react';
 import {
   Box,
@@ -12,16 +10,13 @@ import {
   TableSortLabel,
 } from '@mui/material';
 
-function DataTable({ data }) {
-  // State for pagination
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+function DataTable({ data, dimension }) {
+  const [page, setPage] = useState(0); // Current page for pagination
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Number of rows per page
+  const [order, setOrder] = useState('asc'); // Sorting order ('asc' or 'desc')
+  const [orderBy, setOrderBy] = useState('timePeriod'); // Column to sort by
 
-  // State for sorting
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('timePeriod');
-
-  // Helper function to parse quarter strings into Date objects
+  // Parse quarter strings (e.g., "2023-Q1") into Date objects
   const parseQuarterToDate = (quarterString) => {
     const [year, quarter] = quarterString.split('-Q');
     if (year && quarter) {
@@ -31,51 +26,59 @@ function DataTable({ data }) {
     return null;
   };
 
-  // Apply sorting
+  // Sorting logic
   const sortedData = useMemo(() => {
     const comparator = (a, b) => {
       let aValue = a[orderBy];
       let bValue = b[orderBy];
 
       if (orderBy === 'totalConsumption') {
-        // Numeric comparison
+        // Sort numeric values for total consumption
         aValue = parseFloat(aValue);
         bValue = parseFloat(bValue);
         return order === 'asc' ? aValue - bValue : bValue - aValue;
       } else if (orderBy === 'timePeriod') {
-        // Date comparison
+        // Sort date values for time period
         const aDate = parseQuarterToDate(aValue) || new Date(aValue);
         const bDate = parseQuarterToDate(bValue) || new Date(bValue);
         return order === 'asc' ? aDate - bDate : bDate - aDate;
       } else {
-        // String comparison
+        // Sort alphabetically for other fields
         aValue = aValue ? aValue.toString().toLowerCase() : '';
         bValue = bValue ? bValue.toString().toLowerCase() : '';
-        if (aValue < bValue) return order === 'asc' ? -1 : 1;
-        if (aValue > bValue) return order === 'asc' ? 1 : -1;
-        return 0;
+        return aValue < bValue
+          ? order === 'asc'
+            ? -1
+            : 1
+          : aValue > bValue
+          ? order === 'asc'
+            ? 1
+            : -1
+          : 0;
       }
     };
-    return data.slice().sort(comparator);
+    return data.slice().sort(comparator); // Return sorted data
   }, [data, order, orderBy]);
 
-  // Handle pagination
+  // Handle page change
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+
+  // Handle rows per page change
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setPage(0); // Reset to the first page
   };
 
-  // Handle sorting
+  // Handle sorting request
   const handleRequestSort = (property) => (event) => {
     const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
+    setOrder(isAsc ? 'desc' : 'asc'); // Toggle sorting order
+    setOrderBy(property); // Set the column to sort by
   };
 
-  // Paginate sorted data
+  // Paginate the sorted data
   const paginatedData = sortedData.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
@@ -84,121 +87,68 @@ function DataTable({ data }) {
   return (
     <Box
       sx={{
-        background: 'white',
-        paddingInline: '20px',
-        borderRadius: '20px',
-        paddingTop: '20px',
+        background: 'white', // Background color for the table
+        padding: '20px', // Padding around the table
+        borderRadius: '10px', // Rounded corners
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Subtle shadow for elevation
       }}
     >
       <Table>
         <TableHead>
-          <TableRow sx={{ backgroundColor: '#720e9e' }}>
-            {/* Time Period Column with Sorting */}
-            <TableCell
-              align="center"
-              sortDirection={orderBy === 'timePeriod' ? order : false}
-              sx={{ color: 'white', fontWeight: 'bold' }}
-            >
+          <TableRow>
+            {/* First column: Time Period */}
+            <TableCell align="center">
               <TableSortLabel
                 active={orderBy === 'timePeriod'}
-                direction={orderBy === 'timePeriod' ? order : 'asc'}
+                direction={order}
                 onClick={handleRequestSort('timePeriod')}
-                hideSortIcon={false} // Ensure the sort icon is always visible
-                sx={{
-                  color: 'white',
-                  '&:hover': {
-                    color: 'white',
-                  },
-                  '&.Mui-active': {
-                    color: 'white',
-                  },
-                  '& .MuiTableSortLabel-icon': {
-                    color: 'white !important',
-                  },
-                }}
               >
                 Time Period
               </TableSortLabel>
             </TableCell>
 
-            {/* Provider Column with Sorting */}
-            <TableCell
-              align="center"
-              sortDirection={orderBy === 'provider' ? order : false}
-              sx={{ color: 'white', fontWeight: 'bold' }}
-            >
+            {/* Second column: Dynamic Dimension */}
+            <TableCell align="center">
               <TableSortLabel
-                active={orderBy === 'provider'}
-                direction={orderBy === 'provider' ? order : 'asc'}
+                active={orderBy === dimension}
+                direction={order}
                 onClick={handleRequestSort('provider')}
-                hideSortIcon={false}
-                sx={{
-                  color: 'white',
-                  '&:hover': {
-                    color: 'white',
-                  },
-                  '&.Mui-active': {
-                    color: 'white',
-                  },
-                  '& .MuiTableSortLabel-icon': {
-                    color: 'white !important',
-                  },
-                }}
               >
-                Provider
+                {dimension}
               </TableSortLabel>
             </TableCell>
 
-            {/* Total Consumption Column with Sorting */}
-            <TableCell
-              align="center"
-              sortDirection={orderBy === 'totalConsumption' ? order : false}
-              sx={{ color: 'white', fontWeight: 'bold' }}
-            >
+            {/* Third column: Total Consumption */}
+            <TableCell align="center">
               <TableSortLabel
                 active={orderBy === 'totalConsumption'}
-                direction={orderBy === 'totalConsumption' ? order : 'asc'}
+                direction={order}
                 onClick={handleRequestSort('totalConsumption')}
-                hideSortIcon={false}
-                sx={{
-                  color: 'white',
-                  '&:hover': {
-                    color: 'white',
-                  },
-                  '&.Mui-active': {
-                    color: 'white',
-                  },
-                  '& .MuiTableSortLabel-icon': {
-                    color: 'white !important',
-                  },
-                }}
               >
                 Total Consumption
               </TableSortLabel>
             </TableCell>
           </TableRow>
         </TableHead>
-
         <TableBody>
-          {paginatedData.map((entry, index) => (
+          {/* Render rows of paginated data */}
+          {paginatedData.map((row, index) => (
             <TableRow key={index}>
-              <TableCell align="center">{entry.timePeriod}</TableCell>
-              <TableCell align="center">{entry.provider}</TableCell>
-              <TableCell align="center">{entry.totalConsumption}</TableCell>
+              <TableCell align="center">{row.timePeriod}</TableCell>
+              <TableCell align="center">{row.provider}</TableCell>
+              <TableCell align="center">{row.totalConsumption}</TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-
-      {/* Pagination Controls */}
       <TablePagination
-        component="div"
-        count={data.length}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[5]}
+        component="div" // Pagination controls
+        count={data.length} // Total rows
+        page={page} // Current page
+        onPageChange={handleChangePage} // Page change handler
+        rowsPerPage={rowsPerPage} // Rows per page
+        onRowsPerPageChange={handleChangeRowsPerPage} // Rows per page change handler
+        rowsPerPageOptions={[5, 10, 15]} // Options for rows per page
       />
     </Box>
   );
